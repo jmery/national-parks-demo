@@ -1,5 +1,9 @@
 queue:
   name: Hosted Ubuntu 1604
+trigger:
+- master
+pr:
+- master
 steps:
 - task: chef-software.vsts-habitat-tasks.vsts-habitat-tasks-install.vsts-habitat-install@1
   displayName: 'Install Habitat'
