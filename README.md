@@ -1,16 +1,17 @@
 # National Parks - Java Tomcat Application
+
 This is an example Java Tomcat application packaged by [Habitat](https://habitat.sh). This example app has existed for some time, and another example can be found [here](https://github.com/habitat-sh/national-parks). The differences with this example versus previous examples are the following:
 
-- `core/mongodb` - Previous examples had you build a version of mongodb that was already populated with data before the application 
+- `core/mongodb` - Previous examples had you build a version of mongodb that was already populated with data before the application
 - `mongo.toml` - This repo includes a `user.toml` file for overriding the default configuration of mongodb
 - `core/haproxy` = This repo uses the `core/haproxy` package as a loadbalancer in front of National Parks
 - Scaling - In both the `terrform/azure` and `terraform/aws` plans there is a `count` variable which allows you to scale out the web instances to demonstrate the concept of choreography vs orchestration in Habitat.
 
-
 ## Usage
+
 In order run this repo, you must first install Habitat. You can find setup docs on the [Habitat Website](https://www.habitat.sh/docs/install-habitat/).
 
-## Build/Test National-Parks App Locally: 
+## Build/Test National-Parks App Locally
 
 1. Clone this repo
 2. `cd national-parks-demo`
@@ -18,11 +19,11 @@ In order run this repo, you must first install Habitat. You can find setup docs 
 4. `hab studio enter`
 5. `build`
 6. `source results/last_build.env`
-7. Load `core/mongodb` package from the public depot:  
+7. Load `core/mongodb` package from the public depot:
   `hab svc load core/mongodb`
 8. Override the default configuration of mongodb:
    `hab config apply mongodb.default $(date +%s) mongo.toml`
-9. Load the most recent build of national-parks: 
+9. Load the most recent build of national-parks:
    `hab svc load $pkg_ident --bind database:mongodb.default`
 10. Load `core/haproxy` from the public depot:
   `hab svc load core/haproxy --bind backend:national-parks.default`
@@ -32,44 +33,46 @@ In order run this repo, you must first install Habitat. You can find setup docs 
 
 You should now be able to hit the front end of the national-parks site as follows:
 
-- Directly - `http://localhost:8080/national-parks`  
+- Directly - `http://localhost:8080/national-parks`
 - HAProxy - `http://localhost:8085/national-parks`
 
 You can also view the admin console for HAProxy to see how the webserver was added dynamically to the load balancer:
 
-http://localhost:8000/haproxy-stats
+`http://localhost:8000/haproxy-stats`
 
-```
+```shell
 username: admin
 password: password
 ```
 
 ### Build a new version of the application
-There is also an `index.html` file in the root of the repo that updates the map of the National-Parks app to use red pins and colored map. This can be used to demonstrate the package promotion capabilities of Habitat. 
+
+There is also an `index.html` file in the root of the repo that updates the map of the National-Parks app to use red pins and colored map. This can be used to demonstrate the package promotion capabilities of Habitat.
 
 1. create a new feature branch - `git checkout -b update_homepage`
 2. Bump the `pkg_version` in `habitat/plan.sh`
 3. Overwrite `src/main/webapp/index.html` with the contents of the `red-index.html` in the root directory _NOTE: the index.html has a version number hard coded on line 38. Update that to your version number if you want it to match.
-4. `hab studio enter` 
+4. `hab studio enter`
 5. `build`
 
-
 ## Terraform
-Included in the repo is terraform code for launching the application in AWS and Google Kubernetes Engine. Provision either AWS, GKE, or both, and then you can watch Habitat update across cloud deployments. 
+
+Included in the repo is terraform code for launching the application in AWS and Google Kubernetes Engine. Provision either AWS, GKE, or both, and then you can watch Habitat update across cloud deployments.
 
 [Terraform](https://www.terraform.io/intro/getting-started/install.html).
 
 ### Proivision National-Parks in AWS
+
 You will need to have an [AWS account already created](https://aws.amazon.com)
 
-#### Step
 1. `cd terraform/aws`
 2. `cp tfvars.example terraform.tfvars`
 3. edit `terraform.tfvars` with your own values
 4. `terraform apply`
 
 Once the provisioning finishes you will see the output with the various public IP addresses
-```
+
+```shell
 Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
 
 Outputs:
@@ -85,9 +88,9 @@ or
 `http://<haproxy_public_ip>:8000/haproxy-stats`
 
 ### Proivision National-Parks in Azure
+
 You will need to have an [Azure account already created](https://azure.microsoft.com/en-us/features/azure-portal/)
 
-#### Step
 1. `cd terraform/azure`
 2. `terraform init`
 3. `az login`
@@ -96,7 +99,8 @@ You will need to have an [Azure account already created](https://azure.microsoft
 6. `terraform apply`
 
 Once provisioning finishes you will see the output withthe various public IP addresses:
-```
+
+```shell
 Apply complete! Resources: 19 added, 0 changed, 0 destroyed.
 
 Outputs:
@@ -114,23 +118,27 @@ or
 `http://<haproxy_public_ip>:8000/haproxy-stats`
 
 ## Scaling out Azure and AWS Deployments
+
 Both the AWS and Azure deployments support scaling of the web front end instances to demonstrate the concept of 'choreography' vs 'orchestration' with Habitat. The choreography comes from the idea that when the front end instances scale out, the supervisor for the HAProxy instance automatically takes care of the adding the new members to the pool and begins balancing traffic correctly across all instances.
 
 ### Scaling out
+
 1. In your `terraform.tfvars` add a line for `count = 3`
 2. run `terraform apply`
 3. Once provisioning finishes, go to the `http://<haproxy-public-ip>:8000/haproxy-stats` to see the new instances in the pool
 
-
 ## Deploy National-Parks in Google Kubernetes Engine
+
 You will need to have an [Google Cloud account already created](https://console.cloud.google.com/), and install the [Google Cloud SDK](https://cloud.google.com/sdk/)
 
 ### Before you begin
+
 - `git clone https://github.com/habitat-sh/habitat-operator`
 - `git clone https://github.com/habitat-sh/habitat-updater`
-- create a `terraform.tfvars` 
+- create a `terraform.tfvars`
 
 ### Provision Kubernetes
+
 1. `cd terraform/gke`
 2. `terraform apply`
 3. When provisioning completes you will see two commands you need to run:
@@ -139,27 +147,33 @@ You will need to have an [Google Cloud account already created](https://console.
    - `2_admin_permissions = kubectl create clusterrolebinding cluster-admin-binding...`
 
 ### Deploy Habitat Operator and Habitat Updater
+
 First we need to deploy the Habitat Operator
+
 1. `git clone https://github.com/habitat-sh/habitat-operator`
 2. `cd habitat-operator`
 3. `kubectl apply -f examples/rbac/rbac.yml`
 4. `kubectl apply -f examples/rbac/habitat-operator.yml`
 
 Now we can deploy the Habitat Updater
+
 1. `git clone https://github.com/habitat-sh/habitat-updater`
 2. `cd habitat-updater`
 3. `kubectl apply -f kubernetes/rbac/rbac.yml`
 4. `kubectl apply -f kubernetes/rbac/updater.yml`
 
 ### Deploy National-Parks into Kubernetes
+
 Now that we have k8s stood up and the Habitat Operator and Updater deployed we are are ready to deploy our app.
+
 1. `cd national-parks-demo/terraform/gke/habitat-operator`
 2. Deploy the GKE load balancer: `kubectl create -f gke-service.yml`
 3. Next, edit the `habitat.yml` template with the proper origin names on lines 19 and 36
 4. Deploy the application: `kubectl create -f habitat.yml`
 
 Once deployment finishes you can run `kubectl get all` and see the running pods:
-```
+
+```shell
 $ kubectl get all
 NAME                                   READY   STATUS    RESTARTS   AGE
 pod/habitat-operator-c7c559d7b-z5z7m   1/1     Running   0          3d1h
